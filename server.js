@@ -4,8 +4,7 @@ var path = require("path");
 var fs = require("fs");
 var join = path.join;
 var normalize = path.normalize;
-
-var root = __dirname
+var root = __dirname;
 
 var server = http.createServer(function(req, res){
   var url = parse(req.url);
@@ -16,7 +15,7 @@ var server = http.createServer(function(req, res){
       if (err) {
         if ("ENOENT" == err.code) {
           res.statusCode = 404;
-          res.end("Page not found")
+          res.end("Page not found");
         } else {
           res.statusCode = 500;
           res.end("Internal Server Error");
@@ -31,12 +30,13 @@ var server = http.createServer(function(req, res){
       }
     });
   } else {
-    console.log("ATTACKER")
+    res.statusCode = 400;
+    res.end("Invalid Request");
   }
 });
 
 function pathIsValid(reqPath) {
-  return (reqPath.indexOf("..") && path.dirname(reqPath) == __dirname);
+  return (reqPath.indexOf("..") == -1);
 }
 
 var port = 4567
