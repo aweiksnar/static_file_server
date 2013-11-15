@@ -6,9 +6,17 @@ var join = path.join;
 var normalize = path.normalize;
 var root = __dirname;
 
+// add root url support, caching
+
 var server = http.createServer(function(req, res){
   var url = parse(req.url);
-  var reqPath = normalize(join(root, url.pathname));
+  var reqPath = false;
+  
+  if (url.pathname == "/") {
+    reqPath = normalize(join(root, '/index.html'));
+  } else {
+    reqPath = normalize(join(root, url.pathname));
+  }
 
   if (pathIsValid(reqPath)) {
     fs.stat(reqPath, function(err, stats){
@@ -21,6 +29,7 @@ var server = http.createServer(function(req, res){
           res.end("Internal Server Error");
         }
       } else {
+        // if reqPath is "/" then change it to index.html
         var stream = fs.createReadStream(reqPath);
         stream.pipe(res);
         stream.on("error", function(err){
