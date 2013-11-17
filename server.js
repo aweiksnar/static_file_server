@@ -6,48 +6,56 @@ var join = path.join;
 var normalize = path.normalize;
 var root = __dirname;
 
-// add root url support, caching
-
 var server = http.createServer(function(req, res){
   var url = parse(req.url);
   var reqPath = false;
+  reqPath = parsedReqPath(reqPath, url)
   
-  if (url.pathname == "/") {
-    reqPath = normalize(join(root, '/index.html'));
-  } else {
-    reqPath = normalize(join(root, url.pathname));
-  }
-
   if (pathIsValid(reqPath)) {
-    fs.stat(reqPath, function(err, stats){
-      if (err) {
-        if ("ENOENT" == err.code) {
-          res.statusCode = 404;
-          res.end("Page not found");
-        } else {
-          res.statusCode = 500;
-          res.end("Internal Server Error");
-        }
-      } else {
-        // if reqPath is "/" then change it to index.html
-        var stream = fs.createReadStream(reqPath);
-        stream.pipe(res);
-        stream.on("error", function(err){
-          res.statusCode = 500;
-          res.end("Internal Server Error");
-        });
-      }
-    });
+    sendResponse(reqPath, res);
   } else {
-    res.statusCode = 400;
-    res.end("Invalid Request");
+    errorResponse(res);
   }
 });
+
+function parsedReqPath(reqPath, url) {
+  if (url.pathname == "/") {
+    return normalize(join(root, '/index.html'));
+  } else {
+    return normalize(join(root, url.pathname));
+  }
+}
 
 function pathIsValid(reqPath) {
   return (reqPath.indexOf("..") == -1);
 }
 
+function sendResponse(reqPath, res) {
+  fs.stat(reqPath, function(err, stats){
+    if (err) {
+      if ("ENOENT" == err.code) {
+        res.statusCode = 404;
+        res.end("Page not found");
+      } else {
+        res.statusCode = 500;
+        res.end("Internal Server Error");
+      }
+    } else {
+      var stream = fs.createReadStream(reqPath);
+      stream.pipe(res);
+      stream.on("error", function(err){
+        res.statusCode = 500;
+        res.end("Internal Server Error");
+      });
+    }
+  });
+}
+
+function errorResponse(res) {
+  res.statusCode = 400;
+  res.end("Invalid Request");
+}
+
 var port = 4567
 server.listen(port);
-console.log("Static server started on port " + port)
+console.log("Server started on port " + port)
