@@ -8,12 +8,12 @@ var root = __dirname;
 
 var server = http.createServer(function(req, res){
   var url = parse(req.url);
-  var reqPath = parsedReqPath(url)
+  var reqPath = parsedReqPath(url);
   
   if (pathIsValid(reqPath)) {
     sendResponse(reqPath, res);
   } else {
-    errorResponse(res);
+    invalidRequest(res);
   }
 });
 
@@ -33,28 +33,35 @@ function sendResponse(reqPath, res) {
   fs.stat(reqPath, function(err, stats){
     if (err) {
       if ("ENOENT" == err.code) {
-        res.statusCode = 404;
-        res.end("Page not found");
+        notFound(res);
       } else {
-        res.statusCode = 500;
-        res.end("Internal Server Error");
+        serverError(res);
       }
     } else {
       var stream = fs.createReadStream(reqPath);
       stream.pipe(res);
       stream.on("error", function(err){
-        res.statusCode = 500;
-        res.end("Internal Server Error");
+        serverError(res);
       });
     }
   });
 }
 
-function errorResponse(res) {
+function invalidRequest(res) {
   res.statusCode = 400;
   res.end("Invalid Request");
 }
 
-var port = 4567
+function notFound(res) {
+  res.statusCode = 404;
+  res.end("Page not found");
+}
+
+function serverError(res) {
+  res.statusCode = 500;
+  res.end("Internal Server Error");
+}
+
+var port = 4567;
 server.listen(port);
-console.log("Server started on port " + port)
+console.log("Server started on port " + port);
