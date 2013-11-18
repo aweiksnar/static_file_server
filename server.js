@@ -8,8 +8,7 @@ var root = __dirname;
 
 var server = http.createServer(function(req, res){
   var url = parse(req.url);
-  var reqPath = false;
-  reqPath = parsedReqPath(reqPath, url)
+  var reqPath = parsedReqPath(url)
   
   if (pathIsValid(reqPath)) {
     sendResponse(reqPath, res);
@@ -18,7 +17,7 @@ var server = http.createServer(function(req, res){
   }
 });
 
-function parsedReqPath(reqPath, url) {
+function parsedReqPath(url) {
   if (url.pathname == "/") {
     return normalize(join(root, '/index.html'));
   } else {
